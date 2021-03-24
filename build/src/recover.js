@@ -44,6 +44,7 @@ var redis = new Redis(6379);
 function push(name, packet) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
+            console.log("REDIS!");
             return [2 /*return*/, redis.lpush(name, JSON.stringify(packet))];
         });
     });
@@ -73,27 +74,30 @@ function popAndSend(name) {
                     count = _a.sent();
                     _a.label = 2;
                 case 2:
-                    if (!count--) return [3 /*break*/, 9];
+                    if (!count--) return [3 /*break*/, 10];
                     return [4 /*yield*/, pop(name)];
                 case 3:
                     p = _a.sent();
                     _a.label = 4;
                 case 4:
-                    _a.trys.push([4, 6, , 8]);
+                    _a.trys.push([4, 6, , 9]);
                     return [4 /*yield*/, fetch(p.route, { method: p.method, headers: p.headers, body: p.body })];
                 case 5:
                     _a.sent();
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 9];
                 case 6:
                     e_1 = _a.sent();
                     p.retries++;
+                    if (!(p.retries < 10)) return [3 /*break*/, 8];
                     return [4 /*yield*/, push(name, p)];
                 case 7:
                     _a.sent();
+                    _a.label = 8;
+                case 8:
                     console.error("popAndSend", e_1);
-                    return [3 /*break*/, 8];
-                case 8: return [3 /*break*/, 2];
-                case 9: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [3 /*break*/, 2];
+                case 10: return [2 /*return*/];
             }
         });
     });

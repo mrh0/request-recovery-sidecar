@@ -14,6 +14,7 @@ export interface Package {
 const redis = new Redis(6379);
 
 export async function push(name, packet: Package) {
+    console.log("REDIS!");
     return redis.lpush(name, JSON.stringify(packet));
 }
 
@@ -30,7 +31,8 @@ export async function popAndSend(name) {
         }
         catch(e) {
             p.retries++;
-            await push(name, p);
+            if(p.retries < parseInt(process.env.MAX_RETRIES))
+                await push(name, p);
             console.error("popAndSend", e);
         }
     }

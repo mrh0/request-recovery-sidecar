@@ -4,8 +4,9 @@ var recover_1 = require("./recover");
 function isErrorCode(code) {
     return code >= 500;
 }
-function handler(body, req, res) {
-    if (!isErrorCode(res.statusCode))
+function handler(body, req, res, proxyRes) {
+    console.log(req.statusCode, proxyRes.statusCode);
+    if (!isErrorCode(proxyRes.statusCode))
         return;
     var p = {
         headers: req.headers,
@@ -13,7 +14,7 @@ function handler(body, req, res) {
         body: body,
         retries: 0,
         route: req.url,
-        error: res.statusCode
+        error: proxyRes.statusCode
     };
     console.log(p);
     recover_1.push(process.env.NAME, p);
