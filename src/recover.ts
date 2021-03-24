@@ -1,7 +1,7 @@
 import Redis = require("ioredis");
 import fetch = require("node-fetch");
 
-interface Packet {
+export interface Package {
     route: string,
     body: any,
     headers: object,
@@ -13,12 +13,12 @@ interface Packet {
 // docker run -p 6379:6379 redis
 const redis = new Redis(6379);
 
-export async function push(name, packet: Packet) {
+export async function push(name, packet: Package) {
     return redis.lpush(name, JSON.stringify(packet));
 }
 
 export async function pop(name) {
-    return JSON.parse(await redis.lpop(name)) as Packet;
+    return JSON.parse(await redis.lpop(name)) as Package;
 }
 
 export async function popAndSend(name) {
