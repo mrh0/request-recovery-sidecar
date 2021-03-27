@@ -1,22 +1,21 @@
 import { IncomingMessage, ServerResponse } from "http";
-import {push, pop, popAndSend, Package} from "./recover";
+import {push, pop, Package} from "./recover";
 
 function isErrorCode(code: number) {
     return code >= 500;
 }
 
-export default function handler(body: string, req: IncomingMessage, res: ServerResponse, proxyRes: IncomingMessage) {
-    if(!isErrorCode(proxyRes.statusCode))
+export default function handler(body: string, req: IncomingMessage, res: ServerResponse, error: number) {
+    if(!isErrorCode(error))
         return;
-
     let p: Package = {
         headers: req.headers,
         method: req.method,
         body: body,
         retries: 0,
         route: req.url,
-        error: proxyRes.statusCode
+        error: error
     };
-    console.log(p);
+    console.log("HANDLER", p);
     push(process.env.NAME, p);
 }

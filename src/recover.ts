@@ -1,6 +1,10 @@
 import Redis = require("ioredis");
 import fetch = require("node-fetch");
 
+const max_batch = parseInt(process.env.RECOVER_BATCH);
+const max_retries = parseInt(process.env.MAX_RETRIES);
+console.log("max_batch", max_batch);
+
 export interface Package {
     route: string,
     body: any,
@@ -14,7 +18,6 @@ export interface Package {
 const redis = new Redis(6379);
 
 export async function push(name, packet: Package) {
-    console.log("REDIS!");
     return redis.lpush(name, JSON.stringify(packet));
 }
 
@@ -22,18 +25,40 @@ export async function pop(name) {
     return JSON.parse(await redis.lpop(name)) as Package;
 }
 
-export async function popAndSend(name) {
+export async function recover(name) {
     let count = await redis.llen(name);
-    while(count--) {
-        let p = await pop(name);
-        try {
-            await fetch(p.route, {method: p.method, headers: p.headers, body: p.body});
+    let failed = 0;
+    while(count > 0) {
+        let b = 0;
+        let batch: Promise<any>[] = [];
+        while(count-- && b++ < max_batch)
+            batch.push(popAndSend(name))
+        await Promise.all(batch);
+    }
+    return {before: count, now: await redis.llen(name), failed: failed};
+}
+
+export async function getLen(name: string) {
+    return redis.llen(name);
+}
+
+async function popAndSend(name: string) {
+    let failed = 0;
+    let p = await pop(name);
+    try {
+        await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
+        console.log("SEND RECOVER", p.method);
+    }
+    catch(e) {
+        p.retries++;
+        if(p.retries < max_retries) {
+            await push(name, p);
+            console.error("ERROR TO RECOVER:", JSON.stringify(p), e);
         }
-        catch(e) {
-            p.retries++;
-            if(p.retries < parseInt(process.env.MAX_RETRIES))
-                await push(name, p);
-            console.error("popAndSend", e);
+        else {
+            console.error("FAILED TO RECOVER:", JSON.stringify(p));
+            failed++;
         }
     }
+    return {failed: failed};
 }

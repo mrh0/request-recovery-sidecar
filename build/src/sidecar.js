@@ -13,11 +13,14 @@ proxy.on('proxyReq', function (proxyReq, req, res) {
     proxyReq.write(bodyData);
 });
 proxy.on('proxyRes', function (proxyRes, req, res) {
-    console.log("BODY", req["body"]);
-    errorHandler_1.default(req["body"], req, res, proxyRes);
+    //console.log("BODY", req["body"])
+    errorHandler_1.default(req["body"], req, res, proxyRes.statusCode);
+});
+proxy.on('error', function (error, req, res) {
+    errorHandler_1.default(req["body"], req, res, 503);
 });
 app.all('*', function (req, res) {
     proxy.web(req, res, { target: process.env.TARGET || 'http://localhost:80' });
 });
-app.listen(process.env.PORT || 80);
+app.listen(process.env.PORT || 80, function () { return console.log("Started proxy", process.env.PORT || 80, "->", process.env.TARGET); });
 //# sourceMappingURL=sidecar.js.map

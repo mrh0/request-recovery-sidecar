@@ -36,15 +36,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.popAndSend = exports.pop = exports.push = void 0;
+exports.getLen = exports.recover = exports.pop = exports.push = void 0;
 var Redis = require("ioredis");
 var fetch = require("node-fetch");
+var max_batch = parseInt(process.env.RECOVER_BATCH);
+var max_retries = parseInt(process.env.MAX_RETRIES);
+console.log("max_batch", max_batch);
 // docker run -p 6379:6379 redis
 var redis = new Redis(6379);
 function push(name, packet) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            console.log("REDIS!");
             return [2 /*return*/, redis.lpush(name, JSON.stringify(packet))];
         });
     });
@@ -64,43 +66,79 @@ function pop(name) {
     });
 }
 exports.pop = pop;
-function popAndSend(name) {
+function recover(name) {
     return __awaiter(this, void 0, void 0, function () {
-        var count, p, e_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var count, failed, b, batch;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0: return [4 /*yield*/, redis.llen(name)];
                 case 1:
-                    count = _a.sent();
-                    _a.label = 2;
+                    count = _b.sent();
+                    failed = 0;
+                    _b.label = 2;
                 case 2:
-                    if (!count--) return [3 /*break*/, 10];
-                    return [4 /*yield*/, pop(name)];
+                    if (!(count > 0)) return [3 /*break*/, 4];
+                    b = 0;
+                    batch = [];
+                    while (count-- && b++ < max_batch)
+                        batch.push(popAndSend(name));
+                    return [4 /*yield*/, Promise.all(batch)];
                 case 3:
-                    p = _a.sent();
-                    _a.label = 4;
+                    _b.sent();
+                    return [3 /*break*/, 2];
                 case 4:
-                    _a.trys.push([4, 6, , 9]);
-                    return [4 /*yield*/, fetch(p.route, { method: p.method, headers: p.headers, body: p.body })];
-                case 5:
-                    _a.sent();
-                    return [3 /*break*/, 9];
-                case 6:
-                    e_1 = _a.sent();
-                    p.retries++;
-                    if (!(p.retries < 10)) return [3 /*break*/, 8];
-                    return [4 /*yield*/, push(name, p)];
-                case 7:
-                    _a.sent();
-                    _a.label = 8;
-                case 8:
-                    console.error("popAndSend", e_1);
-                    return [3 /*break*/, 9];
-                case 9: return [3 /*break*/, 2];
-                case 10: return [2 /*return*/];
+                    _a = { before: count };
+                    return [4 /*yield*/, redis.llen(name)];
+                case 5: return [2 /*return*/, (_a.now = _b.sent(), _a.failed = failed, _a)];
             }
         });
     });
 }
-exports.popAndSend = popAndSend;
+exports.recover = recover;
+function getLen(name) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, redis.llen(name)];
+        });
+    });
+}
+exports.getLen = getLen;
+function popAndSend(name) {
+    return __awaiter(this, void 0, void 0, function () {
+        var failed, p, e_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    failed = 0;
+                    return [4 /*yield*/, pop(name)];
+                case 1:
+                    p = _a.sent();
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 4, , 8]);
+                    return [4 /*yield*/, fetch(process.env.TARGET + p.route, { method: p.method, headers: p.headers, body: JSON.stringify(p.body) })];
+                case 3:
+                    _a.sent();
+                    console.log("SEND RECOVER", p.method);
+                    return [3 /*break*/, 8];
+                case 4:
+                    e_1 = _a.sent();
+                    p.retries++;
+                    if (!(p.retries < max_retries)) return [3 /*break*/, 6];
+                    return [4 /*yield*/, push(name, p)];
+                case 5:
+                    _a.sent();
+                    console.error("ERROR TO RECOVER:", JSON.stringify(p), e_1);
+                    return [3 /*break*/, 7];
+                case 6:
+                    console.error("FAILED TO RECOVER:", JSON.stringify(p));
+                    failed++;
+                    _a.label = 7;
+                case 7: return [3 /*break*/, 8];
+                case 8: return [2 /*return*/, { failed: failed }];
+            }
+        });
+    });
+}
 //# sourceMappingURL=recover.js.map
