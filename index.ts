@@ -2,9 +2,9 @@ require("dotenv").config();
 import express = require("express");
 import {push, pop, recover, getLen} from "./src/recover";
 
-if(process.argv.length > 1)
-    process.env.PORT = process.argv[2];
 if(process.argv.length > 2)
+    process.env.PORT = process.argv[2];
+if(process.argv.length > 3)
     process.env.TARGET = process.argv[3];
 
 import "./src/sidecar";
