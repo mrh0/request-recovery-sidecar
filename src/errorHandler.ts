@@ -5,8 +5,14 @@ function isErrorCode(code: number) {
     return code >= 500;
 }
 
+function isValidMethod(method: string) {
+    return method != "GET";
+}
+
 export default function handler(body: string, req: IncomingMessage, res: ServerResponse, error: number) {
     if(!isErrorCode(error))
+        return;
+    if(!isValidMethod(req.method))
         return;
     let p: Package = {
         headers: req.headers,

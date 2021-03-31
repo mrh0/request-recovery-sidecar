@@ -4,8 +4,13 @@ var recover_1 = require("./recover");
 function isErrorCode(code) {
     return code >= 500;
 }
+function isValidMethod(method) {
+    return method != "GET";
+}
 function handler(body, req, res, error) {
     if (!isErrorCode(error))
+        return;
+    if (!isValidMethod(req.method))
         return;
     var p = {
         headers: req.headers,

@@ -15,7 +15,7 @@ export interface Package {
 }
 
 // docker run -p 6379:6379 redis
-const redis = new Redis(6379);
+const redis = new Redis(process.env.REDIS_PORT);
 
 export async function push(name, packet: Package) {
     return redis.lpush(name, JSON.stringify(packet));

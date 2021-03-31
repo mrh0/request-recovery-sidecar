@@ -43,7 +43,7 @@ var max_batch = parseInt(process.env.RECOVER_BATCH);
 var max_retries = parseInt(process.env.MAX_RETRIES);
 console.log("max_batch", max_batch);
 // docker run -p 6379:6379 redis
-var redis = new Redis(6379);
+var redis = new Redis(process.env.REDIS_PORT);
 function push(name, packet) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
