@@ -1,6 +1,6 @@
 require("dotenv").config();
 import express = require("express");
-import {push, pop, recover, getLen} from "./src/recover";
+import {recover, getLen} from "./src/recover";
 
 if(process.argv.length > 2)
     process.env.PORT = process.argv[2];
@@ -9,13 +9,16 @@ if(process.argv.length > 3)
 
 import "./src/sidecar";
 
+// Create controller server.
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+// GET : Test control server.
 app.get('/ping', (req, res) => res.json({accepted: true, message: "pong", request: req.body}));
 
+// GET : Triggers the recovery process.
 app.get('/recover', async (req, res) => {
     res.json({accepted: true, len: await getLen(process.env.NAME)});
 
