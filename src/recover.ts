@@ -65,7 +65,7 @@ async function popAndSend(name: string) {
     let failed = 0;
     let p = await pop(name);
     try {
-        await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
+        sendWithRetries(p);
         if(process.env.DEBUG == "true")
             console.log("DEBUG", "Sending http request using method", p.method);
     }
@@ -81,4 +81,22 @@ async function popAndSend(name: string) {
         }
     }
     return {failed: failed};
+}
+
+async function sendWithRetries(p: Package) {
+    let i = parseInt(process.env.RETRIES);
+    while(i > 0) {
+        try {
+            await send(p);
+            return;
+        }
+        catch(e) {
+            i--;
+        }
+    }
+    throw "failed retries";
+}
+
+async function send(p: Package) {
+    return fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
 }
