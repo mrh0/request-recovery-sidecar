@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import {push, pop, Package} from "./recover";
+import {push, pop, Package, sendWithRetries} from "./recover";
 import filter from "./filter";
 
 function isAllowedErrorCode(code: number) {
@@ -18,7 +18,7 @@ function isAllowedRoute(route: string) {
  * @public handles incomming requests.
  * @argument request body, request object, response object, http response code
 */
-export default function handler(body: string, req: IncomingMessage, res: ServerResponse, error: number) {
+export default async function handler(body: string, req: IncomingMessage, res: ServerResponse, error: number) {
     if(!isAllowedErrorCode(error))
         return;
     if(!isAllowedMethod(req.method))
@@ -33,7 +33,15 @@ export default function handler(body: string, req: IncomingMessage, res: ServerR
         route: req.url,
         error: error
     };
-    push(process.env.NAME, p);
+
+    /*try {
+        await sendWithRetries(p);
+    }
+    catch(err) {
+        
+    }*/
+    await push(process.env.NAME, p);
+
     if(process.env.DEBUG == "true")
             console.log("DEBUG", "Request was handled", p);
 }

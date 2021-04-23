@@ -39,15 +39,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 var express = require("express");
 var recover_1 = require("./src/recover");
-if (process.argv.length > 1)
-    process.env.PORT = process.argv[2];
 if (process.argv.length > 2)
+    process.env.PORT = process.argv[2];
+if (process.argv.length > 3)
     process.env.TARGET = process.argv[3];
 require("./src/sidecar");
+// Create controller server.
 var app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// GET : Test control server.
 app.get('/ping', function (req, res) { return res.json({ accepted: true, message: "pong", request: req.body }); });
+// GET : Triggers the recovery process.
 app.get('/recover', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, _b;
     var _c;

@@ -1,0 +1,31 @@
+WHEN proxy receives a response
+	IF responsecode is valid and route is valid and method is valid THEN
+		PUSH headers, method, body, route, and retriesCount := 0 to a message queue
+	END IF
+END WHEN
+
+WHEN control receives a recovery request
+    LET count := number of messages in the message queue
+	LET maxBatchSize := 10
+	LET maxRetries := 3
+    WHILE count > 0 DO
+        LET batchNumber := 0
+        LET batchList := []
+        WHILE count > 0 and batchNumber < maxBatchSize DO
+			SUBTRACT 1 from count
+			ADD 1 to batchNumber
+			LET message := POP message from message queue
+			TRY
+				ADD 1 to retriesCount of message
+				SEND message
+			CATCH
+				IF retriesCount of the message is less than maxRetries THEN
+					PUSH message back to the message queue
+				END IF
+			END TRY CATCH
+			PUSH send request to batchList
+		END WHILE
+		AWAIT each request in the batchList
+	END WHILE
+END WHEN
+
