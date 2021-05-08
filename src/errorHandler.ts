@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import {push, pop, Package, sendWithRetries} from "./recover";
+import {push, Package} from "./recover";
 import filter from "./filter";
 
 function isAllowedErrorCode(code: number) {
@@ -43,5 +43,5 @@ export default async function handler(body: string, req: IncomingMessage, res: S
     await push(process.env.NAME, p);
 
     if(process.env.DEBUG == "true")
-            console.log("DEBUG", "Request was handled", p);
+        console.log("DEBUG", "Request was handled", p);
 }

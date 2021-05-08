@@ -53,7 +53,7 @@ function isAllowedRoute(route) {
 */
 function handler(body, req, res, error) {
     return __awaiter(this, void 0, void 0, function () {
-        var p, err_1;
+        var p;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -71,20 +71,21 @@ function handler(body, req, res, error) {
                         route: req.url,
                         error: error
                     };
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 5]);
-                    return [4 /*yield*/, recover_1.sendWithRetries(p)];
-                case 2:
-                    _a.sent();
-                    return [3 /*break*/, 5];
-                case 3:
-                    err_1 = _a.sent();
+                    /*try {
+                        await sendWithRetries(p);
+                    }
+                    catch(err) {
+                        
+                    }*/
                     return [4 /*yield*/, recover_1.push(process.env.NAME, p)];
-                case 4:
+                case 1:
+                    /*try {
+                        await sendWithRetries(p);
+                    }
+                    catch(err) {
+                        
+                    }*/
                     _a.sent();
-                    return [3 /*break*/, 5];
-                case 5:
                     if (process.env.DEBUG == "true")
                         console.log("DEBUG", "Request was handled", p);
                     return [2 /*return*/];

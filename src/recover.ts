@@ -39,8 +39,9 @@ export async function pop(name) {
  * @argument service name
  */
 export async function recover(name) {
-    console.log("LOG", name, "Recovery triggered");
+    console.log("LOG", "'"+name+"'", "Recovery triggered");
     let count = await redis.llen(name);
+    console.log("LOG", count, "in:", "'"+name+"'", );
     let failed = 0;
     while(count > 0) {
         let b = 0;
@@ -65,12 +66,7 @@ async function popAndSend(name: string) {
     let failed = 0;
     let p = await pop(name);
     try {
-        try {
-            await send(p);
-        }
-        catch(err) {
-            await sendWithRetries(p);
-        }
+        await send(p);
         if(process.env.DEBUG == "true")
             console.log("DEBUG", "Sending http request using method", p.method);
     }
@@ -88,7 +84,7 @@ async function popAndSend(name: string) {
     return {failed: failed};
 }
 
-export async function sendWithRetries(p: Package) {
+/*export async function sendWithRetries(p: Package) {
     let i = parseInt(process.env.RETRIES);
     while(i > 0) {
         try {
@@ -102,7 +98,7 @@ export async function sendWithRetries(p: Package) {
         }
     }
     throw "failed retries";
-}
+}*/
 
 async function send(p: Package) {
     return fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});

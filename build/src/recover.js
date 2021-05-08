@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendWithRetries = exports.getLen = exports.recover = exports.pop = exports.push = void 0;
+exports.getLen = exports.recover = exports.pop = exports.push = void 0;
 var Redis = require("ioredis");
 var fetch = require("node-fetch");
 // Max number of requests in a recovery batch.
@@ -86,10 +86,11 @@ function recover(name) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    console.log("LOG", name, "Recovery triggered");
+                    console.log("LOG", "'" + name + "'", "Recovery triggered");
                     return [4 /*yield*/, redis.llen(name)];
                 case 1:
                     count = _b.sent();
+                    console.log("LOG", count, "in:", "'" + name + "'");
                     failed = 0;
                     _b.label = 2;
                 case 2:
@@ -126,7 +127,7 @@ exports.getLen = getLen;
 // Sends stored requests.
 function popAndSend(name) {
     return __awaiter(this, void 0, void 0, function () {
-        var failed, p, err_1, e_1;
+        var failed, p, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -136,73 +137,47 @@ function popAndSend(name) {
                     p = _a.sent();
                     _a.label = 2;
                 case 2:
-                    _a.trys.push([2, 8, , 12]);
-                    _a.label = 3;
-                case 3:
-                    _a.trys.push([3, 5, , 7]);
+                    _a.trys.push([2, 4, , 8]);
                     return [4 /*yield*/, send(p)];
-                case 4:
+                case 3:
                     _a.sent();
-                    return [3 /*break*/, 7];
-                case 5:
-                    err_1 = _a.sent();
-                    return [4 /*yield*/, sendWithRetries(p)];
-                case 6:
-                    _a.sent();
-                    return [3 /*break*/, 7];
-                case 7:
                     if (process.env.DEBUG == "true")
                         console.log("DEBUG", "Sending http request using method", p.method);
-                    return [3 /*break*/, 12];
-                case 8:
+                    return [3 /*break*/, 8];
+                case 4:
                     e_1 = _a.sent();
                     p.retries++;
-                    if (!(p.retries < max_retries)) return [3 /*break*/, 10];
+                    if (!(p.retries < max_retries)) return [3 /*break*/, 6];
                     return [4 /*yield*/, push(name, p)];
-                case 9:
+                case 5:
                     _a.sent();
                     console.log("LOG", "Error when recovering request", e_1);
-                    return [3 /*break*/, 11];
-                case 10:
+                    return [3 /*break*/, 7];
+                case 6:
                     console.error("ERROR", "Failed to recover (discarded request):", e_1, JSON.stringify(p));
                     failed++;
-                    _a.label = 11;
-                case 11: return [3 /*break*/, 12];
-                case 12: return [2 /*return*/, { failed: failed }];
+                    _a.label = 7;
+                case 7: return [3 /*break*/, 8];
+                case 8: return [2 /*return*/, { failed: failed }];
             }
         });
     });
 }
-function sendWithRetries(p) {
-    return __awaiter(this, void 0, void 0, function () {
-        var i, e_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    i = parseInt(process.env.RETRIES);
-                    _a.label = 1;
-                case 1:
-                    if (!(i > 0)) return [3 /*break*/, 6];
-                    _a.label = 2;
-                case 2:
-                    _a.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, send(p)];
-                case 3:
-                    _a.sent();
-                    if (process.env.DEBUG == "true")
-                        console.log("DEBUG", "Retried failed request", p.method);
-                    return [2 /*return*/];
-                case 4:
-                    e_2 = _a.sent();
-                    i--;
-                    return [3 /*break*/, 5];
-                case 5: return [3 /*break*/, 1];
-                case 6: throw "failed retries";
-            }
-        });
-    });
-}
-exports.sendWithRetries = sendWithRetries;
+/*export async function sendWithRetries(p: Package) {
+    let i = parseInt(process.env.RETRIES);
+    while(i > 0) {
+        try {
+            await send(p);
+            if(process.env.DEBUG == "true")
+                console.log("DEBUG", "Retried failed request", p.method);
+            return;
+        }
+        catch(e) {
+            i--;
+        }
+    }
+    throw "failed retries";
+}*/
 function send(p) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
