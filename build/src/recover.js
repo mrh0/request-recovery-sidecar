@@ -180,8 +180,16 @@ function popAndSend(name) {
 }*/
 function send(p) {
     return __awaiter(this, void 0, void 0, function () {
+        var result;
         return __generator(this, function (_a) {
-            return [2 /*return*/, fetch(process.env.TARGET + p.route, { method: p.method, headers: p.headers, body: JSON.stringify(p.body) })];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, fetch(process.env.TARGET + p.route, { method: p.method, headers: p.headers, body: JSON.stringify(p.body) })];
+                case 1:
+                    result = _a.sent();
+                    //if(filter.allowedHTTPCode(result.status))
+                    //    throw "invalid responsecode";
+                    return [2 /*return*/, result];
+            }
         });
     });
 }

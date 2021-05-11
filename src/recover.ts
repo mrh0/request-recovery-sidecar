@@ -1,5 +1,6 @@
 import Redis = require("ioredis");
 import fetch = require("node-fetch");
+import filter from "./filter";
 
 // Max number of requests in a recovery batch.
 const max_batch = parseInt(process.env.RECOVER_BATCH);
@@ -101,5 +102,8 @@ async function popAndSend(name: string) {
 }*/
 
 async function send(p: Package) {
-    return fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
+    let result = await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
+    if(filter.allowedHTTPCode(result.status))
+        throw "invalid responsecode";
+    return result;
 }
