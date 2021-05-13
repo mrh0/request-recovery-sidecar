@@ -1,10 +1,14 @@
 # request-recovery-sidecar
  
 # Dev install
-Run: ```npm install```
+Install the dependencies by running: ```npm install```
 
 # Start
-Run ```npm start```
+Run ```npm start [port] [target]```
+The two start arguments port and target are optional and if provided will replace the field PORT and TARGET in the .env file. The start command will call the Typescript compiler and then run the compiled nodejs application.
+
+# Test
+Run ```npm test```
 
 # Configure
 Create a .env file in the root of the project, then enter the following configurations and modify them to your liking
