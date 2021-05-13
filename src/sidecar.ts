@@ -33,4 +33,4 @@ app.all('*', (req, res) => {
 });
 
 // Start proxy.
-app.listen(process.env.PORT || 80, () => console.log("Started proxy", process.env.PORT || 80, "->", process.env.TARGET));
+app.listen(process.env.PORT || 80, () => console.info("Started proxy", process.env.PORT || 80, "->", process.env.TARGET));

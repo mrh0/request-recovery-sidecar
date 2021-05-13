@@ -40,9 +40,9 @@ export async function pop(name) {
  * @argument service name
  */
 export async function recover(name) {
-    console.log("LOG", "'"+name+"'", "Recovery triggered");
+    console.info("'"+name+"'", "Recovery triggered");
     let count = await redis.llen(name);
-    console.log("LOG", count, "in:", "'"+name+"'", );
+    console.info(count, "in:", "'"+name+"'", );
     let failed = 0;
     while(count > 0) {
         let b = 0;
@@ -69,37 +69,24 @@ async function popAndSend(name: string) {
     try {
         await send(p);
         if(process.env.DEBUG == "true")
-            console.log("DEBUG", "Sending http request using method", p.method);
+            console.debug("Sending http request using method", p.method);
     }
     catch(e) {
         p.retries++;
         if(p.retries < max_retries) {
             await push(name, p);
-            console.log("LOG", "Error when recovering request", e);
+            if(process.env.DEBUG == "true")
+                console.debug("Error when recovering request", e);
         }
         else {
-            console.error("ERROR", "Failed to recover (discarded request):", e, JSON.stringify(p));
+            console.warn("WARN", "Failed to recover (discarded request):", p.method, p.route, e);
+            if(process.env.DEBUG == "true")
+                console.debug("Discarded request", JSON.stringify(p));
             failed++;
         }
     }
     return {failed: failed};
 }
-
-/*export async function sendWithRetries(p: Package) {
-    let i = parseInt(process.env.RETRIES);
-    while(i > 0) {
-        try {
-            await send(p);
-            if(process.env.DEBUG == "true")
-                console.log("DEBUG", "Retried failed request", p.method);
-            return;
-        }
-        catch(e) {
-            i--;
-        }
-    }
-    throw "failed retries";
-}*/
 
 async function send(p: Package) {
     let result = await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});

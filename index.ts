@@ -25,4 +25,4 @@ app.get('/recover', async (req, res) => {
     recover(process.env.NAME);
 });
 
-app.listen(process.env.CONTROL_PORT || 5001, () => console.log("Started control server on port", process.env.CONTROL_PORT || 5001));
+app.listen(process.env.CONTROL_PORT || 5001, () => console.info("Started control server on port", process.env.CONTROL_PORT || 5001));

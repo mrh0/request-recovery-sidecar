@@ -34,14 +34,8 @@ export default async function handler(body: string, req: IncomingMessage, res: S
         error: error
     };
 
-    /*try {
-        await sendWithRetries(p);
-    }
-    catch(err) {
-        
-    }*/
     await push(process.env.NAME, p);
 
     if(process.env.DEBUG == "true")
-        console.log("DEBUG", "Request was handled", p);
+        console.info("Request was handled", p);
 }

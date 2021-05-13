@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <name/sidecar-service>
+  labels:
+    app: application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: <name/sidecar-service>
+  template:
+    metadata:
+      labels:
+        app: <name/sidecar-service>
+    spec:
+      containers:
+        - name: <name/service>
+          image: <image/service>
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3005
+
+        - name: recovery-sidecar
+          image: <image/sidecar>
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+            - name: TARGET
+              value: "http://localhost:3005"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: <name/sidecar-service>
+spec:
+  selector:
+    app: <name/sidecar-service>
+  ports:
+  - port: 1003
+    targetPort: 5000
+  type: LoadBalancer
