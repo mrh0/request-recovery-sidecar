@@ -49,5 +49,5 @@ The response will not wait for the recovery process to finish and as such the ab
 
 # Docker & Kubernetes
 
-The file kube/sidecar.yaml is a template for deploying the service as a sidecar, the fields <sidecar-service>, <service>, <image/service>, <image/sidecar> should be replaced with the appropriate names of services and names of images which are relevant to your specific deployment.
+The file kube/sidecar.yaml is a template for deploying the service as a sidecar, the fields <name/sidecar-service>, <name/service>, <image/service>, <image/sidecar> should be replaced with the appropriate names of services and names of images which are relevant to your specific deployment.
 The command ```kubectl apply -f kube``` can be used to apply the configuration to a Kubernetes cluster.
