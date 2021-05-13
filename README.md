@@ -5,7 +5,7 @@ Install the dependencies by running: ```npm install```
 
 # Start
 Run ```npm start [port] [target]```
-The two start arguments port and target are optional and if provided will replace the field PORT and TARGET in the .env file. The start command will call the Typescript compiler and then run the compiled nodejs application.
+The two start arguments port and target are optional and if provided will replace the field PORT and TARGET in the .env file. The start command will call the Typescript compiler ```tsc``` and then run the compiled nodejs application which is output in the ```/build/``` directory.
 
 # Test
 Run ```npm test``` this will execute 11 mocha tests.
