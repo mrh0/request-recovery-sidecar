@@ -1,20 +1,20 @@
-import Redis = require("ioredis");
-import fetch = require("node-fetch");
-import filter from "./filter";
+const Redis = require("ioredis");
+const fetch = require("node-fetch");
+const filter = require("./filter");
 
 // Max number of requests in a recovery batch.
 const max_batch = parseInt(process.env.RECOVER_BATCH);
 // Max number of failed recovers for a request before it is discarded.
 const max_retries = parseInt(process.env.MAX_RETRIES);
 
-export interface Package {
+/*export interface Package {
     route: string,
     body: any,
     headers: object,
     method: string,
     error?: any,
     retries: number,
-}
+}*/
 
 // docker run -p 6379:6379 redis
 const redis = new Redis(process.env.REDIS_PORT);
@@ -23,7 +23,7 @@ const redis = new Redis(process.env.REDIS_PORT);
  * @public Add a request to the database.
  * @argument service name
  */
-export async function push(name, packet: Package) {
+async function push(name, packet) {
     return redis.lpush(name, JSON.stringify(packet));
 }
 
@@ -31,22 +31,22 @@ export async function push(name, packet: Package) {
  * @public Get the first stored request.
  * @argument service name
  */
-export async function pop(name) {
-    return JSON.parse(await redis.lpop(name)) as Package;
+async function pop(name) {
+    return JSON.parse(await redis.lpop(name));
 }
 
 /** 
  * @public Trigger the recovery process.
  * @argument service name
  */
-export async function recover(name) {
+async function recover(name) {
     console.info("'"+name+"'", "Recovery triggered");
     let count = await redis.llen(name);
     console.info(count, "in:", "'"+name+"'", );
     let failed = 0;
     while(count > 0) {
         let b = 0;
-        let batch: Promise<any>[] = [];
+        let batch = [];
         while(count-- && b++ < max_batch)
             batch.push(popAndSend(name))
         await Promise.all(batch);
@@ -58,12 +58,12 @@ export async function recover(name) {
  * @public Get number of requests in the database.
  * @argument service name
  */
-export async function getLen(name: string) {
+async function getLen(name) {
     return redis.llen(name);
 }
 
 // Sends stored requests.
-async function popAndSend(name: string) {
+async function popAndSend(name) {
     let failed = 0;
     let p = await pop(name);
     try {
@@ -88,9 +88,11 @@ async function popAndSend(name: string) {
     return {failed: failed};
 }
 
-async function send(p: Package) {
+async function send(p) {
     let result = await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
     if(filter.allowedHTTPCode(result.status))
         throw "invalid responsecode";
     return result;
 }
+
+module.exports = {push: push, pop: pop, recover: recover, getLen: getLen};

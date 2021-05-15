@@ -1,6 +1,6 @@
-import express = require('express');
-import httpProxy = require('http-proxy');
-import handler from "./errorHandler";
+const express = require('express');
+const httpProxy = require('http-proxy');
+const handler = require("./errorHandler");
 
 // Create proxy server.
 const app = express();

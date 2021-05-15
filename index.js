@@ -1,13 +1,13 @@
 require("dotenv").config();
-import express = require("express");
-import {recover, getLen} from "./src/recover";
+const express = require("express");
+const {recover, getLen} = require("./src/recover");
 
 if(process.argv.length > 2)
     process.env.PORT = process.argv[2];
 if(process.argv.length > 3)
     process.env.TARGET = process.argv[3];
 
-import "./src/sidecar";
+require("./src/sidecar");
 
 // Create controller server.
 const app = express();
