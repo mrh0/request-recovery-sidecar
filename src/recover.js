@@ -2,11 +2,6 @@ const Redis = require("ioredis");
 const fetch = require("node-fetch");
 const filter = require("./filter");
 
-// Max number of requests in a recovery batch.
-const max_batch = parseInt(process.env.RECOVER_BATCH);
-// Max number of failed recovers for a request before it is discarded.
-const max_retries = parseInt(process.env.MAX_RETRIES);
-
 /*export interface Package {
     route: string,
     body: any,
@@ -40,32 +35,40 @@ async function pop(name) {
  * @argument service name
  */
 async function recover(name) {
+    // Max number of requests in a recovery batch.
+    const max_batch = parseInt(process.env.RECOVER_BATCH);
+    // Max number of failed recovers for a request before it is discarded.
+    const max_retries = parseInt(process.env.MAX_RETRIES);
+
     console.info("'"+name+"'", "Recovery triggered");
-    let count = await redis.llen(name);
+    let count = await getLen(name);
     console.info(count, "in:", "'"+name+"'", );
+    let db = [];
+    for(i = 0; i < count; i++)
+        db.push(await pop(name));
     let failed = 0;
     while(count > 0) {
         let b = 0;
         let batch = [];
         while(count-- && b++ < max_batch)
-            batch.push(popAndSend(name))
+            batch.push(popAndSend(name, db[count], max_retries))
         await Promise.all(batch);
     }
-    return {before: count, now: await redis.llen(name), failed: failed};
+    return {before: count, now: await getLen(name), failed: failed};
 }
 
 /** 
  * @public Get number of requests in the database.
  * @argument service name
+ * @returns promise of number of messages in Redis
  */
-async function getLen(name) {
+function getLen(name) {
     return redis.llen(name);
 }
 
 // Sends stored requests.
-async function popAndSend(name) {
+async function popAndSend(name, p, max_retries) {
     let failed = 0;
-    let p = await pop(name);
     try {
         await send(p);
         if(process.env.DEBUG == "true")

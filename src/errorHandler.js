@@ -1,5 +1,5 @@
 const { IncomingMessage, ServerResponse } = require("http");
-const {push, Package} = require("./recover");
+const {push} = require("./recover");
 const filter = require("./filter");
 
 function isAllowedErrorCode(code) {
