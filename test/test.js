@@ -106,5 +106,39 @@ describe('Recovery', () => {
                 catch(e) {done(e)}
             });
 		});
+
+        it('Multiple (20) request was unsuccessful and recovery fail once then succeedes', function (done) {
+            this.timeout(10000);
+            process.env.TEST_FAIL = "true";
+            process.env.MAX_RETRIES = "3";
+            process.env.RECOVER_BATCH = "5";
+            let req = [];
+            const num = 20;
+            for(i = 0; i < num; i++)
+                req.push(request("flag", {}))
+            
+			Promise.all(req).then(async () => {
+                assert.strictEqual(flag.get(), 0);
+                await recover();
+                await waitFor(1000);
+                try {
+                    assert.strictEqual(await getLen(process.env.NAME), num);
+                    assert.strictEqual(flag.get(), 0);
+                    done();
+                }
+                catch(e) {done(e)}
+
+                process.env.TEST_FAIL = "false";
+
+                await recover();
+                await waitFor(1000);
+                try {
+                    assert.strictEqual(await getLen(process.env.NAME), 0);
+                    assert.strictEqual(flag.get(), num);
+                    done();
+                }
+                catch(e) {done(e)}
+            });
+		});
 	});
 });

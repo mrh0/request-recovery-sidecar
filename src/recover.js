@@ -40,13 +40,11 @@ async function recover(name) {
     // Max number of failed recovers for a request before it is discarded.
     const max_retries = parseInt(process.env.MAX_RETRIES);
 
-    console.info("'"+name+"'", "Recovery triggered");
     let count = await getLen(name);
-    console.info(count, "in:", "'"+name+"'", );
+    console.info("Recovery triggered,", count, "in:", "'"+name+"'");
     let db = [];
     for(i = 0; i < count; i++)
         db.push(await pop(name));
-    console.log("DB:", db.length)
     let failed = 0;
     count = db.length;
     while(count > 0) {
