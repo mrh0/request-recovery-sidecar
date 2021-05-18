@@ -46,12 +46,16 @@ async function recover(name) {
     let db = [];
     for(i = 0; i < count; i++)
         db.push(await pop(name));
+    console.log("DB:", db.length)
     let failed = 0;
+    count = db.length;
     while(count > 0) {
         let b = 0;
         let batch = [];
-        while(count-- && b++ < max_batch)
+        while(count && b++ < max_batch) {
+            count--;
             batch.push(popAndSend(name, db[count], max_retries))
+        }
         await Promise.all(batch);
     }
     return {before: count, now: await getLen(name), failed: failed};
