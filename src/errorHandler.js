@@ -20,11 +20,11 @@ function isAllowedRoute(route) {
 */
 module.exports = async function handler(body, req, res, error) {
     if(!isAllowedErrorCode(error))
-        return;
+        return false;
     if(!isAllowedMethod(req.method))
-        return;
+        return false;
     if(!isAllowedRoute(req.url))
-        return;
+        return false;
     let p = {
         headers: req.headers,
         method: req.method,
@@ -38,4 +38,5 @@ module.exports = async function handler(body, req, res, error) {
 
     if(process.env.DEBUG == "true")
         console.info("Request was handled", p);
+    return true;
 }

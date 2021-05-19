@@ -6,6 +6,7 @@ const {getLen} = require("../src/recover");
 const {createServer} = require("http");
 require("dotenv").config();
 process.env.TEST_FAIL = "false";
+process.env.TEST_TIMEOUT = "false";
 
 function waitFor(ms) {
 	return new Promise((resolve) => {
@@ -17,6 +18,7 @@ function waitFor(ms) {
 }
 
 function request(to, body) {
+	console.log("request")
     return fetch("http://localhost:"+process.env.PORT+"/"+to, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
 }
 
@@ -24,14 +26,20 @@ function recover() {
     return fetch("http://localhost:"+process.env.CONTROL_PORT+"/recover", {method: "GET", headers: {"Content-Type": "application/json"}});
 }
 
+let server;
+
+function startServer() {
+	server = createServer(app);
+	server.listen(process.env.TEST_PORT || 5000, () => {
+		console.log(`Server listening on port ${process.env.TEST_PORT || 5000}`);
+	});
+}
+
 describe('Recovery', () => {
     before(() => {
-        require("../index")
+        require("../index");
 
-        const server = createServer(app);
-        server.listen(process.env.TEST_PORT || 5000, () => {
-            console.log(`Server listening on port ${process.env.TEST_PORT || 5000}`);
-        });
+        startServer();
     })
 
 	describe('Testing recovery', () => {
@@ -124,12 +132,10 @@ describe('Recovery', () => {
                 try {
                     assert.strictEqual(await getLen(process.env.NAME), num);
                     assert.strictEqual(flag.get(), 0);
-                    done();
                 }
                 catch(e) {done(e)}
 
                 process.env.TEST_FAIL = "false";
-
                 await recover();
                 await waitFor(1000);
                 try {
@@ -139,6 +145,44 @@ describe('Recovery', () => {
                 }
                 catch(e) {done(e)}
             });
+		});
+
+        // not working
+        it('Multiple (20) request was timed out and recovery fail once then succeedes', function(done) {
+            this.timeout(100000);
+            process.env.MAX_RETRIES = "3";
+            process.env.RECOVER_BATCH = "5";
+
+			server.close();
+			waitFor(1000).then(async () => {
+				let req = [];
+				const num = 4;
+				for(i = 0; i < num; i++)
+					req.push(request("flag", {}));
+				Promise.all(req).finally(async () => {
+					assert.strictEqual(flag.get(), 0);
+					await recover();
+					await waitFor(5000);
+					try {
+						assert.strictEqual(await getLen(process.env.NAME), num);
+						assert.strictEqual(flag.get(), 0);
+					}
+					catch(e) {return done(e)}
+
+					startServer()
+					await waitFor(1000);
+
+					await recover();
+					await waitFor(1000);
+					try {
+						assert.strictEqual(await getLen(process.env.NAME), 0);
+						assert.strictEqual(flag.get(), num);
+						console.log("done")
+						done();
+					}
+					catch(e) {return done(e)}
+				});
+			});
 		});
 	});
 });

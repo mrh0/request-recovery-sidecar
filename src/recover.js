@@ -94,7 +94,7 @@ async function popAndSend(name, p, max_retries) {
 }
 
 async function send(p) {
-    let result = await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body)});
+    let result = await fetch(process.env.TARGET + p.route, {method: p.method, headers: p.headers, body: JSON.stringify(p.body), timeout: parseInt(process.env.RECOVER_TIMEOUT)});
     if(filter.allowedHTTPCode(result.status))
         throw "invalid responsecode";
     return result;
