@@ -8,7 +8,7 @@ Run ```npm start [port] [target]```
 The two start arguments port and target are optional and if provided will replace the field PORT and TARGET in the .env file. The start command will call the Typescript compiler ```tsc``` and then run the compiled nodejs application which is output in the ```/build/``` directory.
 
 # Test
-Run ```npm test``` will execute 0 mocha tests.
+Run ```npm test``` will execute 5 mocha tests.
 
 # Configure
 Create a .env file in the root of the project, then enter the following configurations and modify them to your liking
