@@ -1,6 +1,6 @@
-import express = require('express');
-import httpProxy = require('http-proxy');
-import handler from "./errorHandler";
+const express = require('express');
+const httpProxy = require('http-proxy');
+const handler = require("./errorHandler");
 
 // Create proxy server.
 const app = express();
@@ -18,13 +18,15 @@ proxy.on('proxyReq', (proxyReq, req, res) => {
 });
 
 // Proxy response.
-proxy.on('proxyRes', (proxyRes, req, res) => {
-    handler(req["body"], req, res, proxyRes.statusCode);
+proxy.on('proxyRes', async (proxyRes, req, res) => {
+    if(await handler(req["body"], req, res, proxyRes.statusCode))
+        res.status(proxyRes.statusCode).send();
 });
 
 // Proxy error.
-proxy.on('error', (error, req, res) => {
-    handler(req["body"], req, res, 503);
+proxy.on('error', async (error, req, res) => {
+    if(await handler(req["body"], req, res, 503))
+        res.status(503).send();
 })
 
 // All proxy requests.

@@ -1,16 +1,16 @@
-import { IncomingMessage, ServerResponse } from "http";
-import {push, Package} from "./recover";
-import filter from "./filter";
+const { IncomingMessage, ServerResponse } = require("http");
+const {push} = require("./recover");
+const filter = require("./filter");
 
-function isAllowedErrorCode(code: number) {
+function isAllowedErrorCode(code) {
     return filter.allowedHTTPCode(code);
 }
 
-function isAllowedMethod(method: string) {
+function isAllowedMethod(method) {
     return filter.allowedMethod(method);
 }
 
-function isAllowedRoute(route: string) {
+function isAllowedRoute(route) {
     return filter.allowedRoute(route);
 }
 
@@ -18,14 +18,14 @@ function isAllowedRoute(route: string) {
  * @public handles incomming requests.
  * @argument request body, request object, response object, http response code
 */
-export default async function handler(body: string, req: IncomingMessage, res: ServerResponse, error: number) {
+module.exports = async function handler(body, req, res, error) {
     if(!isAllowedErrorCode(error))
-        return;
+        return false;
     if(!isAllowedMethod(req.method))
-        return;
+        return false;
     if(!isAllowedRoute(req.url))
-        return;
-    let p: Package = {
+        return false;
+    let p = {
         headers: req.headers,
         method: req.method,
         body: body,
@@ -38,4 +38,5 @@ export default async function handler(body: string, req: IncomingMessage, res: S
 
     if(process.env.DEBUG == "true")
         console.info("Request was handled", p);
+    return true;
 }
