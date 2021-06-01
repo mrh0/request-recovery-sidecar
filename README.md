@@ -25,7 +25,7 @@ DEBUG = false
 ```
 ```
 NAME : name of the Redis entry
-PORT : Proxy port (ingoing trafic)
+PORT : Proxy port (incoming trafic)
 CONTROL_PORT : Command the sidecar (/recover)
 REDIS_PORT : Redis port
 TARGET : URL to target service (proxy trafic target)
